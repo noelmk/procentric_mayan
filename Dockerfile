@@ -5,7 +5,7 @@ COPY ./scripts/mayan.conf /etc/supervisor/conf.d/mayan.conf
 
 RUN chmod +x /usr/local/bin/run_frontend.sh
 RUN chown -R mayan:mayan /usr/local/bin
-RUN usermod -a -G  sudo,mayan mayan
+# RUN usermod -a -G  sudo,mayan mayan
 RUN echo "mayan ALL=NOPASSWD: ALL" >> /etc/sudoers
 
 # CMD [ "entrypoint.sh" ] 
