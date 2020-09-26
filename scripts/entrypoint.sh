@@ -77,9 +77,9 @@ initialsetup() {
 
     # Change the owner of the /var/lib/mayan always to allow adding the
     # initial files. Top level only.
-    chown mayan:mayan ${MAYAN_MEDIA_ROOT}
+    sudo chown -R mayan:mayan ${MAYAN_MEDIA_ROOT}
 
-    su mayan -c "${MAYAN_BIN} initialsetup --force --no-dependencies"
+    sudo -u mayan ${MAYAN_BIN} initialsetup --force --no-dependencies
 }
 
 make_ready() {
@@ -119,23 +119,23 @@ pip_installs() {
 
 update_uid_gid() {
     echo "mayan: update_uid_gid()"
-    groupmod mayan -o -g ${MAYAN_USER_GID}
-    usermod mayan -o -u ${MAYAN_USER_UID}
+    sudo groupmod mayan -o -g ${MAYAN_USER_GID}
+    sudo usermod mayan -o -u ${MAYAN_USER_UID}
 
     if [ ${MAYAN_USER_UID} -ne ${DEFAULT_USER_UID} ] || [ ${MAYAN_USER_GID} -ne ${DEFAULT_USER_GID} ]; then
         echo "mayan: Updating file ownership. This might take a while if there are many documents."
-        chown -R mayan:mayan ${MAYAN_INSTALL_DIR} ${MAYAN_STATIC_ROOT}
+        sudo chown -R mayan:mayan ${MAYAN_INSTALL_DIR} ${MAYAN_STATIC_ROOT}
         if [ "${MAYAN_SKIP_CHOWN_ON_STARTUP}" = "true" ]; then
             echo "mayan: skipping chown on startup"
         else
-            chown -R mayan:mayan ${MAYAN_MEDIA_ROOT}
+            sudo chown -R mayan:mayan ${MAYAN_MEDIA_ROOT}
         fi
     fi
 }
 
 # Start execution here
 wait.sh ${MAYAN_DOCKER_WAIT}
-# update_uid_gid
+update_uid_gid
 os_package_installs || true
 pip_installs || true
 
