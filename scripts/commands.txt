@@ -1,0 +1,4 @@
+
+docker build -t procentric_noel .   
+
+docker run -it  -p 80:5000 procentric_noel
