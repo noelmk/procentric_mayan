@@ -66,10 +66,10 @@ fi
 export PYTHONPATH=$PYTHONPATH:$MAYAN_MEDIA_ROOT
 
 apt_get_install() {
-    apt-get -q update
-    apt-get install -y --force-yes --no-install-recommends --auto-remove "$@"
-    apt-get -q clean
-    rm -rf /var/lib/apt/lists/*
+    sudo apt-get -q update
+    sudo apt-get install -y --force-yes --no-install-recommends --auto-remove "$@"
+    sudo apt-get -q clean
+    sudo rm -rf /var/lib/apt/lists/*
 }
 
 initialsetup() {
@@ -79,7 +79,7 @@ initialsetup() {
     # initial files. Top level only.
     sudo chown -R mayan:mayan ${MAYAN_MEDIA_ROOT}
 
-    sudo -u mayan ${MAYAN_BIN} initialsetup --force --no-dependencies
+    ${MAYAN_BIN} initialsetup --force --no-dependencies
 }
 
 make_ready() {
@@ -94,26 +94,26 @@ make_ready() {
 
 run_all() {
     echo "mayan: start()"
-    rm -rf /var/run/supervisor.sock
-    exec /usr/bin/supervisord -nc /etc/supervisor/supervisord.conf
+    sudo rm -rf /var/run/supervisor.sock
+    exec sudo -E /usr/bin/supervisord -nc /etc/supervisor/supervisord.conf
 }
 
 os_package_installs() {
     echo "mayan: os_package_installs()"
     if [ "${MAYAN_APT_INSTALLS}" ]; then
-        DEBIAN_FRONTEND=noninteractive apt_get_install $MAYAN_APT_INSTALLS
+        DEBIAN_FRONTEND=noninteractive sudo apt_get_install $MAYAN_APT_INSTALLS
     fi
 }
 
 performupgrade() {
     echo "mayan: performupgrade()"
-    su mayan -c "${MAYAN_BIN} performupgrade --no-dependencies"
+    "${MAYAN_BIN} performupgrade --no-dependencies"
 }
 
 pip_installs() {
     echo "mayan: pip_installs()"
     if [ "${MAYAN_PIP_INSTALLS}" ]; then
-        su mayan -c "${MAYAN_PIP_BIN} install $MAYAN_PIP_INSTALLS"
+        ${MAYAN_PIP_BIN} install $MAYAN_PIP_INSTALLS
     fi
 }
 
@@ -121,6 +121,8 @@ update_uid_gid() {
     echo "mayan: update_uid_gid()"
     sudo groupmod mayan -o -g ${MAYAN_USER_GID}
     sudo usermod mayan -o -u ${MAYAN_USER_UID}
+    # sudo chown -R mayan:mayan ${MAYAN_MEDIA_ROOT}
+    # sudo chmod -R 777 ${MAYAN_MEDIA_ROOT}
 
     if [ ${MAYAN_USER_UID} -ne ${DEFAULT_USER_UID} ] || [ ${MAYAN_USER_GID} -ne ${DEFAULT_USER_GID} ]; then
         echo "mayan: Updating file ownership. This might take a while if there are many documents."
@@ -134,7 +136,7 @@ update_uid_gid() {
 }
 
 # Start execution here
-wait.sh ${MAYAN_DOCKER_WAIT}
+sudo -E wait.sh ${MAYAN_DOCKER_WAIT}
 update_uid_gid
 os_package_installs || true
 pip_installs || true
@@ -156,28 +158,28 @@ run_all)
     ;;
 
 run_celery)
-    run_celery.sh "${@:2}"
+    sudo -E run_celery.sh "${@:2}"
     ;;
 
 run_command)
-    su mayan -c "${MAYAN_BIN} ${@:2}"
+    ${MAYAN_BIN} ${@:2}
     ;;
 
 run_frontend)
-    run_frontend.sh
+    sudo -E run_frontend.sh
     ;;
 
 run_tests)
     make_ready
-    run_tests.sh "${@:2}"
+    sudo -E run_tests.sh "${@:2}"
     ;;
 
 run_worker)
-    run_worker.sh "${@:2}"
+    sudo -E run_worker.sh "${@:2}"
     ;;
 
 *)
-    su mayan -c "$@"
+    $@
     ;;
 
 esac
